@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SMART FRESH PRO FINAL</title>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+body{margin:0;font-family:sans-serif;background:#eef2f7}
+
+/* LOGIN */
+.login-box{width:300px;margin:100px auto;background:#fff;padding:20px;text-align:center;border-radius:10px}
+input,select{width:90%;padding:10px;margin:8px}
+button{padding:10px;margin:5px;background:#4f46e5;color:#fff;border:none}
+
+/* LAYOUT */
+.container{display:flex}
+.sidebar{width:200px;background:#1e293b;color:#fff;padding:15px}
+.sidebar div{padding:10px;cursor:pointer}
+.main{flex:1;padding:15px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{padding:8px;border:1px solid #ddd;text-align:center}
+th{background:#4f46e5;color:#fff}
+
+.emp{max-width:400px;margin:30px auto;background:#fff;padding:20px;text-align:center}
+.big{width:100%;margin:5px;background:#10b981}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="login-box">
+<h2>SMART FRESH</h2>
+<select id="role">
+<option value="admin">Admin</option>
+<option value="employee">Employee</option>
+</select>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none" class="container">
+
+<div class="sidebar">
+<h3>SMART</h3>
+<div onclick="showTab('home')">Home</div>
+<div onclick="showTab('attendance')">Attendance</div>
+<div onclick="showTab('work')">Work</div>
+<div onclick="showTab('salary')">Salary</div>
+<div onclick="logout()">Logout</div>
+</div>
+
+<div class="main">
+
+<!-- HOME -->
+<div id="home">
+<button onclick="openModal()">Add Employee</button>
+<table>
+<tr><th>ID</th><th>Name</th><th>Contact</th><th>Post</th></tr>
+<tbody id="homeTable"></tbody>
+</table>
+</div>
+
+<!-- ATTENDANCE -->
+<div id="attendance" style="display:none">
+<table>
+<tr><th>ID</th><th>Name</th><th>Days</th><th>Leaves</th></tr>
+<tbody id="attTable"></tbody>
+</table>
+</div>
+
+<!-- WORK -->
+<div id="work" style="display:none">
+<table>
+<tr><th>ID</th><th>Name</th><th>Total Hours</th></tr>
+<tbody id="workTable"></tbody>
+</table>
+</div>
+
+<!-- SALARY -->
+<div id="salary" style="display:none">
+<table>
+<tr><th>ID</th><th>Name</th><th>Salary</th></tr>
+<tbody id="salTable"></tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+<!-- EMPLOYEE -->
+<div id="empPanel" style="display:none" class="emp">
+
+<h2 id="empName"></h2>
+
+<button class="big" onclick="mark('in')">Check In</button>
+<button class="big" onclick="mark('out')">Check Out</button>
+
+<input id="newPass" placeholder="New Password">
+<button onclick="changePassword()">Change Password</button>
+
+<button onclick="logout()">Logout</button>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;width:100%;height:100%;background:#0005">
+<div style="background:#fff;padding:20px;width:300px;margin:100px auto">
+<input id="emp_name" placeholder="Name">
+<input id="emp_contact" placeholder="Contact">
+<input id="emp_post" placeholder="Post">
+<input id="emp_salary" placeholder="Salary">
+<button onclick="addEmployee()">Save</button>
+</div>
+</div>
+
+<script>
+
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDlCcrwiDjFlhQdPQIMjssbd48Q1xEn1AQ",
+  authDomain: "smart-fresh-eb255.firebaseapp.com",
+  projectId: "smart-fresh-eb255",
+  storageBucket: "smart-fresh-eb255.appspot.com",
+  messagingSenderId: "308076858003",
+  appId: "1:308076858003:web:e57983d8ec5a2e4d079b66"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let employees=[],attendance={},empId="";
+
+// LOGIN
+async function login(){
+await load();
+let role=document.getElementById("role").value;
+let u=username.value.trim();
+let p=password.value.trim();
+
+if(role==="admin"){
+if(u==="admin"&&p==="1234"){
+loginPage.style.display="none";
+adminPanel.style.display="flex";
+}else alert("Wrong Admin");
+}
+
+if(role==="employee"){
+let emp=employees.find(e=>e.id===u && e.password===p);
+if(emp){
+empId=emp.id;
+empName.innerText=emp.name;
+loginPage.style.display="none";
+empPanel.style.display="block";
+}else alert("Wrong Employee");
+}
+}
+
+// LOAD
+async function load(){
+employees=[]; attendance={};
+
+let empSnap=await db.collection("employees").get();
+empSnap.forEach(doc=>employees.push(doc.data()));
+
+let attSnap=await db.collection("attendance").get();
+attSnap.forEach(doc=>attendance[doc.id]=doc.data());
+
+render();
+}
+
+// ADD EMPLOYEE
+async function addEmployee(){
+let n=emp_name.value,c=emp_contact.value,p=emp_post.value,s=emp_salary.value;
+let id="EMP"+Date.now();
+
+await db.collection("employees").doc(id).set({
+id,name:n,contact:c,post:p,salary:Number(s),password:c
+});
+
+modal.style.display="none";
+load();
+}
+
+// ATTENDANCE
+async function mark(type){
+let d=new Date().toISOString().split("T")[0];
+
+await db.collection("attendance").doc(d).set({
+[empId+"_in"]:Date.now()
+},{merge:true});
+
+if(type==="out"){
+await db.collection("attendance").doc(d).set({
+[empId+"_out"]:Date.now()
+},{merge:true});
+}
+
+}
+
+// PASSWORD
+async function changePassword(){
+await db.collection("employees").doc(empId).update({password:newPass.value});
+alert("Updated");
+}
+
+// UI
+function showTab(id){
+["home","attendance","work","salary"].forEach(t=>document.getElementById(t).style.display="none");
+document.getElementById(id).style.display="block";
+}
+function openModal(){modal.style.display="block"}
+function logout(){location.reload()}
+
+// RENDER
+function render(){
+
+let h="",a="",w="",s="";
+
+employees.forEach(e=>{
+
+let days=0,work=0;
+
+for(let d in attendance){
+let r=attendance[d];
+if(r[e.id+"_in"]) days++;
+if(r[e.id+"_in"]&&r[e.id+"_out"])
+work+=(r[e.id+"_out"]-r[e.id+"_in"]);
+}
+
+let hrs=work/3600000;
+
+h+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.contact}</td><td>${e.post}</td></tr>`;
+a+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${days}</td><td>${30-days}</td></tr>`;
+w+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${hrs.toFixed(2)}</td></tr>`;
+s+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.salary}</td></tr>`;
+
+});
+
+homeTable.innerHTML=h;
+attTable.innerHTML=a;
+workTable.innerHTML=w;
+salTable.innerHTML=s;
+
+}
+
+</script>
+
+</body>
+</html>
