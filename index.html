@@ -1,77 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>SMART FRESH PRO FINAL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Fresh Premium</title>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
-body{margin:0;font-family:sans-serif;background:#eef2f7}
+body{margin:0;font-family:'Segoe UI';background:#f5f7fb}
 
 /* LOGIN */
-.login-box{width:300px;margin:100px auto;background:#fff;padding:20px;text-align:center;border-radius:10px}
-input,select{width:90%;padding:10px;margin:8px}
-button{padding:10px;margin:5px;background:#4f46e5;color:#fff;border:none}
+.login{
+display:flex;justify-content:center;align-items:center;height:100vh;
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+}
+.login-card{
+background:#fff;padding:30px;border-radius:12px;width:320px;
+text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+.login-card input,select{
+width:90%;padding:10px;margin:8px;border:1px solid #ccc;border-radius:6px;
+}
+.login-card button{
+width:95%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:6px;
+}
 
-/* LAYOUT */
-.container{display:flex}
-.sidebar{width:200px;background:#1e293b;color:#fff;padding:15px}
-.sidebar div{padding:10px;cursor:pointer}
-.main{flex:1;padding:15px}
+/* SIDEBAR */
+.sidebar{
+width:220px;height:100vh;background:#1e293b;color:#fff;position:fixed;padding:20px;
+}
+
+/* TOPBAR */
+.topbar{
+margin-left:220px;height:60px;background:#fff;display:flex;
+justify-content:flex-end;align-items:center;padding:0 20px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+gap:20px;
+position:relative;
+}
+
+/* MAIN */
+.main{margin-left:220px;padding:20px}
 
 /* TABLE */
 table{width:100%;border-collapse:collapse;background:#fff}
-th,td{padding:8px;border:1px solid #ddd;text-align:center}
+th,td{padding:12px;border-bottom:1px solid #ddd;text-align:center}
 th{background:#4f46e5;color:#fff}
 
-.emp{max-width:400px;margin:30px auto;background:#fff;padding:20px;text-align:center}
-.big{width:100%;margin:5px;background:#10b981}
+/* BUTTON */
+button{padding:8px 12px;background:#4f46e5;color:#fff;border:none;border-radius:6px}
+
+/* MENU */
+.menu{
+display:none;position:absolute;right:10px;top:50px;
+background:#fff;border:1px solid #ccc;border-radius:6px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+.menu div{padding:10px;cursor:pointer}
+.menu div:hover{background:#eee}
+
+/* NOTIFICATION */
+.notif-box{
+display:none;position:absolute;right:60px;top:50px;
+background:#fff;width:250px;border:1px solid #ccc;border-radius:6px;
+max-height:300px;overflow:auto;
+}
+.notif-box div{padding:10px;border-bottom:1px solid #eee}
+
+/* EMP */
+.emp{text-align:center;padding:20px}
+.big{width:80%;margin:10px;padding:12px;background:#10b981}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="loginPage" class="login-box">
-<h2>SMART FRESH</h2>
+<div id="loginPage" class="login">
+<div class="login-card">
+<h2>Smart Fresh</h2>
+
 <select id="role">
 <option value="admin">Admin</option>
 <option value="employee">Employee</option>
 </select>
+
 <input id="username" placeholder="Username">
 <input id="password" type="password" placeholder="Password">
+
 <button onclick="login()">Login</button>
 </div>
+</div>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none" class="container">
+<!-- ADMIN -->
+<div id="adminPanel" style="display:none">
 
 <div class="sidebar">
-<h3>SMART</h3>
-<div onclick="showTab('home')">Home</div>
-<div onclick="showTab('attendance')">Attendance</div>
-<div onclick="showTab('work')">Work</div>
-<div onclick="showTab('salary')">Salary</div>
+<h2>Smart Fresh</h2>
+<div onclick="tab('home')">Home</div>
+<div onclick="tab('attendance')">Attendance</div>
+<div onclick="tab('work')">Work</div>
+<div onclick="tab('salary')">Salary</div>
+<div onclick="tab('notif')">Notifications</div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+
+<!-- BELL -->
+<div onclick="toggleNotif()">🔔</div>
+
+<!-- 3 DASH -->
+<div onclick="toggleMenu()">☰</div>
+
+<div id="menu" class="menu">
+<div onclick="addEmp()">Add Employee</div>
 <div onclick="logout()">Logout</div>
+</div>
+
+<div id="notifBox" class="notif-box"></div>
+
 </div>
 
 <div class="main">
 
 <!-- HOME -->
 <div id="home">
-<button onclick="openModal()">Add Employee</button>
 <table>
-<tr><th>ID</th><th>Name</th><th>Contact</th><th>Post</th></tr>
+<tr>
+<th>ID</th><th>Name</th><th>Post</th><th>Contact</th>
+</tr>
 <tbody id="homeTable"></tbody>
 </table>
 </div>
 
-<!-- ATTENDANCE -->
+<!-- ATT -->
 <div id="attendance" style="display:none">
 <table>
-<tr><th>ID</th><th>Name</th><th>Days</th><th>Leaves</th></tr>
+<tr><th>ID</th><th>Name</th><th>Presents</th><th>Leaves</th></tr>
 <tbody id="attTable"></tbody>
 </table>
 </div>
@@ -79,7 +146,7 @@ th{background:#4f46e5;color:#fff}
 <!-- WORK -->
 <div id="work" style="display:none">
 <table>
-<tr><th>ID</th><th>Name</th><th>Total Hours</th></tr>
+<tr><th>ID</th><th>Name</th><th>Work</th><th>Late</th><th>OT</th></tr>
 <tbody id="workTable"></tbody>
 </table>
 </div>
@@ -97,159 +164,178 @@ th{background:#4f46e5;color:#fff}
 
 <!-- EMPLOYEE -->
 <div id="empPanel" style="display:none" class="emp">
+<h2 id="welcome"></h2>
 
-<h2 id="empName"></h2>
+<select id="shift">
+<option value="1">Shift 1</option>
+<option value="2">Shift 2</option>
+<option value="3">Shift 3</option>
+<option value="4">Shift 4</option>
+</select>
 
-<button class="big" onclick="mark('in')">Check In</button>
-<button class="big" onclick="mark('out')">Check Out</button>
+<button class="big" onclick="checkIn()">Check In</button>
+<button class="big" onclick="checkOut()">Check Out</button>
 
-<input id="newPass" placeholder="New Password">
-<button onclick="changePassword()">Change Password</button>
+<textarea id="leave"></textarea>
+<button onclick="sendLeave()">Apply Leave</button>
+
+<textarea id="issue"></textarea>
+<button onclick="sendIssue()">Send Issue</button>
 
 <button onclick="logout()">Logout</button>
-
-</div>
-
-<!-- MODAL -->
-<div id="modal" style="display:none;position:fixed;width:100%;height:100%;background:#0005">
-<div style="background:#fff;padding:20px;width:300px;margin:100px auto">
-<input id="emp_name" placeholder="Name">
-<input id="emp_contact" placeholder="Contact">
-<input id="emp_post" placeholder="Post">
-<input id="emp_salary" placeholder="Salary">
-<button onclick="addEmployee()">Save</button>
-</div>
 </div>
 
 <script>
 
-// FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyDlCcrwiDjFlhQdPQIMjssbd48Q1xEn1AQ",
-  authDomain: "smart-fresh-eb255.firebaseapp.com",
-  projectId: "smart-fresh-eb255",
-  storageBucket: "smart-fresh-eb255.appspot.com",
-  messagingSenderId: "308076858003",
-  appId: "1:308076858003:web:e57983d8ec5a2e4d079b66"
+/* FIREBASE */
+const firebaseConfig={
+apiKey:"YOUR_KEY",
+authDomain:"smart-fresh-eb255.firebaseapp.com",
+projectId:"smart-fresh-eb255"
 };
-
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-let employees=[],attendance={},empId="";
+let currentUser,checkInTime;
 
-// LOGIN
+/* LOGIN */
 async function login(){
-await load();
-let role=document.getElementById("role").value;
-let u=username.value.trim();
-let p=password.value.trim();
+let r=role.value,u=username.value,p=password.value;
 
-if(role==="admin"){
-if(u==="admin"&&p==="1234"){
+if(r==="admin" && u==="admin" && p==="1234"){
 loginPage.style.display="none";
-adminPanel.style.display="flex";
-}else alert("Wrong Admin");
-}
-
-if(role==="employee"){
-let emp=employees.find(e=>e.id===u && e.password===p);
-if(emp){
-empId=emp.id;
-empName.innerText=emp.name;
-loginPage.style.display="none";
-empPanel.style.display="block";
-}else alert("Wrong Employee");
-}
-}
-
-// LOAD
-async function load(){
-employees=[]; attendance={};
-
-let empSnap=await db.collection("employees").get();
-empSnap.forEach(doc=>employees.push(doc.data()));
-
-let attSnap=await db.collection("attendance").get();
-attSnap.forEach(doc=>attendance[doc.id]=doc.data());
-
-render();
-}
-
-// ADD EMPLOYEE
-async function addEmployee(){
-let n=emp_name.value,c=emp_contact.value,p=emp_post.value,s=emp_salary.value;
-let id="EMP"+Date.now();
-
-await db.collection("employees").doc(id).set({
-id,name:n,contact:c,post:p,salary:Number(s),password:c
-});
-
-modal.style.display="none";
+adminPanel.style.display="block";
 load();
 }
 
-// ATTENDANCE
-async function mark(type){
-let d=new Date().toISOString().split("T")[0];
-
-await db.collection("attendance").doc(d).set({
-[empId+"_in"]:Date.now()
-},{merge:true});
-
-if(type==="out"){
-await db.collection("attendance").doc(d).set({
-[empId+"_out"]:Date.now()
-},{merge:true});
+if(r==="employee"){
+let snap=await db.collection("employees").get();
+snap.forEach(d=>{
+let e=d.data();
+if(e.contact===u && e.password===p){
+currentUser=e;
+loginPage.style.display="none";
+empPanel.style.display="block";
+welcome.innerText="Welcome "+e.name;
+}
+});
+}
 }
 
+/* MENU */
+function toggleMenu(){
+menu.style.display=menu.style.display==="block"?"none":"block";
 }
 
-// PASSWORD
-async function changePassword(){
-await db.collection("employees").doc(empId).update({password:newPass.value});
-alert("Updated");
+/* NOTIF */
+function toggleNotif(){
+notifBox.style.display=notifBox.style.display==="block"?"none":"block";
+loadNotif();
 }
 
-// UI
-function showTab(id){
-["home","attendance","work","salary"].forEach(t=>document.getElementById(t).style.display="none");
-document.getElementById(id).style.display="block";
-}
-function openModal(){modal.style.display="block"}
-function logout(){location.reload()}
-
-// RENDER
-function render(){
-
-let h="",a="",w="",s="";
-
-employees.forEach(e=>{
-
-let days=0,work=0;
-
-for(let d in attendance){
-let r=attendance[d];
-if(r[e.id+"_in"]) days++;
-if(r[e.id+"_in"]&&r[e.id+"_out"])
-work+=(r[e.id+"_out"]-r[e.id+"_in"]);
+async function loadNotif(){
+let n="";
+let snap=await db.collection("notifications").get();
+snap.forEach(d=>{
+let x=d.data();
+n+=`<div>${x.type} : ${x.text}</div>`;
+});
+notifBox.innerHTML=n;
 }
 
-let hrs=work/3600000;
+/* SHIFT */
+function getShift(s){
+if(s=="1")return{start:480,end:690};
+if(s=="2")return{start:690,end:900};
+if(s=="3")return{start:900,end:1110};
+if(s=="4")return{start:1110,end:1320};
+}
 
-h+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.contact}</td><td>${e.post}</td></tr>`;
-a+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${days}</td><td>${30-days}</td></tr>`;
-w+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${hrs.toFixed(2)}</td></tr>`;
-s+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.salary}</td></tr>`;
+function now(){let d=new Date();return d.getHours()*60+d.getMinutes();}
 
+/* CHECK */
+function checkIn(){checkInTime=now();alert("In");}
+async function checkOut(){
+let t=getShift(shift.value);
+let out=now();
+
+let work=(out-checkInTime)/60;
+let late=Math.max(0,checkInTime-t.start);
+let ot=Math.max(0,out-t.end);
+
+await db.collection("attendance").add({
+empId:currentUser.id,name:currentUser.name,work,late,ot
+});
+alert("Saved");
+}
+
+/* ADD */
+async function addEmp(){
+let n=prompt("Name");
+let c=prompt("Contact");
+let p=prompt("Post");
+let id=n[0]+Date.now();
+
+await db.collection("employees").doc(id).set({
+id,name:n,contact:c,post:p,password:c
+});
+load();
+}
+
+/* LOAD */
+async function load(){
+
+let h="",att={},w="",sal={};
+
+let emp=await db.collection("employees").get();
+emp.forEach(d=>{
+let e=d.data();
+h+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.post}</td><td>${e.contact}</td></tr>`;
+att[e.id]={name:e.name,days:0};
 });
 
-homeTable.innerHTML=h;
-attTable.innerHTML=a;
-workTable.innerHTML=w;
-salTable.innerHTML=s;
+let at=await db.collection("attendance").get();
+at.forEach(d=>{
+let a=d.data();
+att[a.empId].days++;
 
+w+=`<tr><td>${a.empId}</td><td>${a.name}</td><td>${a.work.toFixed(2)}</td><td>${a.late}</td><td>${a.ot}</td></tr>`;
+sal[a.empId]=(sal[a.empId]||0)+a.work*100;
+});
+
+let ahtml="",shtml="";
+for(let i in att){
+ahtml+=`<tr><td>${i}</td><td>${att[i].name}</td><td>${att[i].days}</td><td>${30-att[i].days}</td></tr>`;
 }
+for(let i in sal){
+shtml+=`<tr><td>${i}</td><td>${att[i].name}</td><td>${sal[i]}</td></tr>`;
+}
+
+homeTable.innerHTML=h;
+attTable.innerHTML=ahtml;
+workTable.innerHTML=w;
+salTable.innerHTML=shtml;
+}
+
+/* LEAVE */
+function sendLeave(){
+db.collection("notifications").add({type:"leave",text:leave.value});
+alert("Sent");
+}
+
+/* ISSUE */
+function sendIssue(){
+db.collection("notifications").add({type:"issue",text:issue.value});
+alert("Sent");
+}
+
+/* TAB */
+function tab(t){
+["home","attendance","work","salary"].forEach(x=>document.getElementById(x).style.display="none");
+document.getElementById(t).style.display="block";
+}
+
+function logout(){location.reload();}
 
 </script>
 
