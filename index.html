@@ -1,343 +1,305 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Fresh Premium</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Fresh | Enterprise Portal</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<style>
-body{margin:0;font-family:'Segoe UI';background:#f5f7fb}
+    <style>
+        :root { --primary: #4f46e5; --dark: #0f172a; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --gray: #64748b; }
+        body { margin:0; font-family: 'Segoe UI', Tahoma, sans-serif; background:#f8fafc; color: #1e293b; }
+        
+        /* LOGIN */
+        .login-screen { display:flex; justify-content:center; align-items:center; height:100vh; background: #ffffff; }
+        .login-card { background: var(--primary); padding:40px; border-radius:16px; width:100%; max-width: 350px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; color: #fff; }
+        input, select, textarea { width:100%; padding:12px; margin:8px 0; border:1px solid #e2e8f0; border-radius:8px; box-sizing: border-box; font-size: 14px;}
 
-/* LOGIN */
-.login{
-display:flex;justify-content:center;align-items:center;height:100vh;
-background:linear-gradient(135deg,#4f46e5,#6366f1);
-}
-.login-card{
-background:#fff;padding:30px;border-radius:12px;width:320px;
-text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
-.login-card input,select{
-width:90%;padding:10px;margin:8px;border:1px solid #ccc;border-radius:6px;
-}
-.login-card button{
-width:95%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:6px;
-}
+        /* TOPBAR */
+        .topbar { display:flex; justify-content:space-between; align-items:center; background: #fff; padding:10px 20px; border-bottom: 1px solid #e2e8f0; position: sticky; top:0; z-index:100; }
+        .logo { font-size:20px; font-weight:800; color: var(--primary); }
+        .nav-tabs span { padding: 10px 15px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 14px; }
+        .active-tab { background: var(--primary); color: white; }
 
-/* SIDEBAR */
-.sidebar{
-width:220px;height:100vh;background:#1e293b;color:#fff;position:fixed;padding:20px;
-}
+        .header-actions { display:flex; align-items:center; gap: 15px; }
+        .notif-bell { position: relative; cursor: pointer; font-size: 20px; }
+        .notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; display: none; border: 2px solid white; }
+        .hamburger { cursor: pointer; font-size: 22px; }
 
-/* TOPBAR */
-.topbar{
-margin-left:220px;height:60px;background:#fff;display:flex;
-justify-content:flex-end;align-items:center;padding:0 20px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-gap:20px;
-position:relative;
-}
+        /* TABLES */
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
+        .card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; color: var(--gray); font-size: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 
-/* MAIN */
-.main{margin-left:220px;padding:20px}
+        /* EMPLOYEE PORTAL DESIGN */
+        .emp-header { text-align:center; padding: 25px; background: #fff; border-radius: 12px; margin-bottom: 20px; }
+        .live-time-display { font-size: 32px; font-weight: 800; color: var(--primary); margin: 10px 0; letter-spacing: 1px; }
+        
+        .attendance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .att-box { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; }
+        .time-label { font-size: 12px; color: var(--gray); margin-top: 5px; font-weight: bold; }
+        
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: 0.2s; padding: 10px; }
+        button:disabled { background: #e2e8f0 !important; color: #94a3b8 !important; cursor: not-allowed; }
+        .btn-main { background: var(--primary); color: white; width: 100%; padding: 12px; }
 
-/* TABLE */
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{padding:12px;border-bottom:1px solid #ddd;text-align:center}
-th{background:#4f46e5;color:#fff}
+        /* DROPDOWNS */
+        .dropdown { display:none; position:absolute; right: 0; background:#fff; box-shadow:0 10px 15px rgba(0,0,0,0.1); border-radius:8px; border:1px solid #e2e8f0; width: 160px; z-index: 50; }
+        .dropdown div { padding: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .dropdown div:hover { background: #f8fafc; color: var(--primary); }
 
-/* BUTTON */
-button{padding:8px 12px;background:#4f46e5;color:#fff;border:none;border-radius:6px}
-
-/* MENU */
-.menu{
-display:none;position:absolute;right:10px;top:50px;
-background:#fff;border:1px solid #ccc;border-radius:6px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-}
-.menu div{padding:10px;cursor:pointer}
-.menu div:hover{background:#eee}
-
-/* NOTIFICATION */
-.notif-box{
-display:none;position:absolute;right:60px;top:50px;
-background:#fff;width:250px;border:1px solid #ccc;border-radius:6px;
-max-height:300px;overflow:auto;
-}
-.notif-box div{padding:10px;border-bottom:1px solid #eee}
-
-/* EMP */
-.emp{text-align:center;padding:20px}
-.big{width:80%;margin:10px;padding:12px;background:#10b981}
-</style>
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index: 1000; }
+        .modal-content { background:#fff; padding:25px; border-radius:12px; width:90%; max-width: 450px; max-height: 85vh; overflow-y: auto; }
+        
+        @media (max-width: 768px) { .attendance-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="loginPage" class="login">
-<div class="login-card">
-<h2>Smart Fresh</h2>
-
-<select id="role">
-<option value="admin">Admin</option>
-<option value="employee">Employee</option>
-</select>
-
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
-
-<button onclick="login()">Login</button>
-</div>
+<div id="loginPage" class="login-screen">
+    <div class="login-card">
+        <h2>Smart Fresh</h2>
+        <select id="role">
+            <option value="admin">Admin</option>
+            <option value="emp">Employee</option>
+        </select>
+        <input id="username" placeholder="Employee ID">
+        <input id="password" type="password" placeholder="Password (Contact No)">
+        <button class="btn-main" style="background:#fff; color:var(--primary)" onclick="login()">LOGIN</button>
+    </div>
 </div>
 
-<!-- ADMIN -->
 <div id="adminPanel" style="display:none">
+    <div class="topbar">
+        <div class="logo">SMART FRESH</div>
+        <div class="nav-tabs">
+            <span id="tab-home" class="active-tab" onclick="showTab('home')">HOME</span>
+            <span id="tab-att" onclick="showTab('att')">ATTENDANCE</span>
+            <span id="tab-work" onclick="showTab('work')">WORK</span>
+            <span id="tab-sal" onclick="showTab('sal')">SALARY</span>
+        </div>
+        <div class="header-actions">
+            <div class="notif-bell" onclick="showNotifs()">🔔<div id="notifDot" class="notif-dot"></div></div>
+            <div class="hamburger" onclick="toggleMainDropdown()">☰</div>
+            <div id="mainMenu" class="dropdown" style="top:50px; right:20px">
+                <div onclick="openAddModal()">Add Employee</div>
+                <div onclick="logout()">Logout</div>
+            </div>
+        </div>
+    </div>
 
-<div class="sidebar">
-<h2>Smart Fresh</h2>
-<div onclick="tab('home')">Home</div>
-<div onclick="tab('attendance')">Attendance</div>
-<div onclick="tab('work')">Work</div>
-<div onclick="tab('salary')">Salary</div>
-<div onclick="tab('notif')">Notifications</div>
+    <div class="container">
+        <div id="home" class="card">
+            <table>
+                <thead><tr><th>ID</th><th>NAME</th><th>POST</th><th>CONTACT</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                <tbody id="homeData"></tbody>
+            </table>
+        </div>
+        <div id="att" class="card" style="display:none">
+            <div style="display:flex; gap:10px; margin-bottom:15px"><select id="attMonth" onchange="loadAdminData()"></select><select id="attYear" onchange="loadAdminData()"></select></div>
+            <table><thead><tr><th>ID</th><th>NAME</th><th>PRESENTS</th><th>LEAVES</th></tr></thead><tbody id="attData"></tbody></table>
+        </div>
+        <div id="work" class="card" style="display:none">
+            <div style="display:flex; gap:10px; margin-bottom:15px"><select id="workMonth" onchange="loadAdminData()"></select><select id="workYear" onchange="loadAdminData()"></select></div>
+            <table><thead><tr><th>ID</th><th>NAME</th><th>WORK HRS</th><th>LATE</th><th>OT</th></tr></thead><tbody id="workData"></tbody></table>
+        </div>
+        <div id="sal" class="card" style="display:none">
+            <div style="display:flex; gap:10px; margin-bottom:15px"><select id="salMonth" onchange="loadAdminData()"></select><select id="salYear" onchange="loadAdminData()"></select></div>
+            <table><thead><tr><th>ID</th><th>NAME</th><th>TOTAL SALARY (₹)</th><th>STATUS</th></tr></thead><tbody id="salData"></tbody></table>
+        </div>
+    </div>
 </div>
 
-<!-- TOPBAR -->
-<div class="topbar">
+<div id="empPanel" style="display:none">
+    <div class="topbar">
+        <div class="logo">PORTAL</div>
+        <div onclick="logout()" style="color:var(--danger); cursor:pointer; font-weight:bold">Logout</div>
+    </div>
+    <div class="container" style="max-width: 950px">
+        <div class="emp-header">
+            <h2 id="welcomeMsg" style="margin:0; color: var(--gray)">Welcome</h2>
+            <div id="liveTime" class="live-time-display">--:--:--</div>
+            <select id="shiftSelect" style="width: auto;">
+                <option value="1">Shift 1 (08:00 AM)</option>
+                <option value="2">Shift 2 (11:30 AM)</option>
+                <option value="3">Shift 3 (03:00 PM)</option>
+                <option value="4">Shift 4 (06:30 PM)</option>
+            </select>
+        </div>
 
-<!-- BELL -->
-<div onclick="toggleNotif()">🔔</div>
+        <div class="attendance-grid">
+            <div class="att-box">
+                <strong style="color:var(--primary)">Main Duty</strong><hr>
+                <button id="btn-in" class="btn-main" onclick="mark('in')">CHECK IN</button>
+                <div id="lbl-in" class="time-label">--:--</div>
+                <button id="btn-out" class="btn-main" style="background:var(--danger); margin-top:10px" onclick="mark('out')">CHECK OUT</button>
+                <div id="lbl-out" class="time-label">--:--</div>
+            </div>
+            <div class="att-box">
+                <strong style="color:var(--warning)">Breakfast</strong><hr>
+                <button id="btn-breakout" class="btn-main" style="background:var(--warning)" onclick="mark('breakout')">BREAK OUT</button>
+                <div id="lbl-breakout" class="time-label">--:--</div>
+                <button id="btn-breakin" class="btn-main" style="margin-top:10px" onclick="mark('breakin')">BREAK IN</button>
+                <div id="lbl-breakin" class="time-label">--:--</div>
+            </div>
+            <div class="att-box">
+                <strong style="color:var(--success)">Lunch</strong><hr>
+                <button id="btn-lunchout" class="btn-main" style="background:var(--warning)" onclick="mark('lunchout')">LUNCH OUT</button>
+                <div id="lbl-lunchout" class="time-label">--:--</div>
+                <button id="btn-lunchin" class="btn-main" style="margin-top:10px" onclick="mark('lunchin')">LUNCH IN</button>
+                <div id="lbl-lunchin" class="time-label">--:--</div>
+            </div>
+        </div>
 
-<!-- 3 DASH -->
-<div onclick="toggleMenu()">☰</div>
-
-<div id="menu" class="menu">
-<div onclick="addEmp()">Add Employee</div>
-<div onclick="logout()">Logout</div>
+        <div class="card">
+            <h3>Leave / Store Problem</h3>
+            <select id="reqType"><option value="Leave">Apply for Leave</option><option value="Store Problem">Report Store Problem</option></select>
+            <textarea id="reqMsg" rows="3" placeholder="Explain your reason here..."></textarea>
+            <button class="btn-main" onclick="submitRequest()">Submit Application</button>
+        </div>
+    </div>
 </div>
 
-<div id="notifBox" class="notif-box"></div>
-
+<div id="empModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Staff Details</h3>
+        <input id="e_name" placeholder="Full Name"><input id="e_father" placeholder="Father's Name">
+        <input id="e_contact" placeholder="Contact No"><input id="e_address" placeholder="Address">
+        <input id="e_post" placeholder="Post"><input id="e_duty" type="number" placeholder="Duty Hours">
+        <input id="e_salary" type="number" placeholder="Salary (₹)">
+        <button class="btn-main" onclick="saveEmployee()">Save Data</button>
+        <button onclick="closeModal()" style="background:none; color:var(--gray); width:100%; margin-top:10px">Cancel</button>
+    </div>
 </div>
 
-<div class="main">
-
-<!-- HOME -->
-<div id="home">
-<table>
-<tr>
-<th>ID</th><th>Name</th><th>Post</th><th>Contact</th>
-</tr>
-<tbody id="homeTable"></tbody>
-</table>
-</div>
-
-<!-- ATT -->
-<div id="attendance" style="display:none">
-<table>
-<tr><th>ID</th><th>Name</th><th>Presents</th><th>Leaves</th></tr>
-<tbody id="attTable"></tbody>
-</table>
-</div>
-
-<!-- WORK -->
-<div id="work" style="display:none">
-<table>
-<tr><th>ID</th><th>Name</th><th>Work</th><th>Late</th><th>OT</th></tr>
-<tbody id="workTable"></tbody>
-</table>
-</div>
-
-<!-- SALARY -->
-<div id="salary" style="display:none">
-<table>
-<tr><th>ID</th><th>Name</th><th>Salary</th></tr>
-<tbody id="salTable"></tbody>
-</table>
-</div>
-
-</div>
-</div>
-
-<!-- EMPLOYEE -->
-<div id="empPanel" style="display:none" class="emp">
-<h2 id="welcome"></h2>
-
-<select id="shift">
-<option value="1">Shift 1</option>
-<option value="2">Shift 2</option>
-<option value="3">Shift 3</option>
-<option value="4">Shift 4</option>
-</select>
-
-<button class="big" onclick="checkIn()">Check In</button>
-<button class="big" onclick="checkOut()">Check Out</button>
-
-<textarea id="leave"></textarea>
-<button onclick="sendLeave()">Apply Leave</button>
-
-<textarea id="issue"></textarea>
-<button onclick="sendIssue()">Send Issue</button>
-
-<button onclick="logout()">Logout</button>
+<div id="notifModal" class="modal">
+    <div class="modal-content">
+        <h3>Notifications</h3>
+        <div id="notifList"></div>
+        <button onclick="document.getElementById('notifModal').style.display='none'" class="btn-main" style="margin-top:15px">Close</button>
+    </div>
 </div>
 
 <script>
-
-/* FIREBASE */
-const firebaseConfig={
-apiKey:"YOUR_KEY",
-authDomain:"smart-fresh-eb255.firebaseapp.com",
-projectId:"smart-fresh-eb255"
-};
+const firebaseConfig = { apiKey: "AIzaSyDlCcrwiDjFlhQdPQIMjssbd48Q1xEn1AQ", authDomain: "smart-fresh-eb255.firebaseapp.com", projectId: "smart-fresh-eb255" };
 firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+const db = firebase.firestore();
 
-let currentUser,checkInTime;
+let currentUser = {};
+let editingId = null;
+const SHOP_LAT = 22.8527357;
+const SHOP_LNG = 88.8115527;
+const RADIUS = 50;
 
-/* LOGIN */
-async function login(){
-let r=role.value,u=username.value,p=password.value;
+window.onload = () => {
+    ['att', 'work', 'sal'].forEach(f => {
+        const m = document.getElementById(f+'Month'), y = document.getElementById(f+'Year'), now = new Date();
+        ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach((n, i) => m.add(new Option(n, i+1, i===now.getMonth(), i===now.getMonth())));
+        for(let yr=2025; yr<=2030; yr++) y.add(new Option(yr, yr, yr===now.getFullYear(), yr===now.getFullYear()));
+    });
+    setInterval(() => { if(document.getElementById('liveTime')) document.getElementById('liveTime').innerText = new Date().toLocaleTimeString(); }, 1000);
+    listenNotifs();
+};
 
-if(r==="admin" && u==="admin" && p==="1234"){
-loginPage.style.display="none";
-adminPanel.style.display="block";
-load();
+async function login() {
+    const r = document.getElementById('role').value, u = document.getElementById('username').value, p = document.getElementById('password').value;
+    if(r === "admin" && u === "admin" && p === "1234") {
+        document.getElementById('loginPage').style.display="none"; document.getElementById('adminPanel').style.display="block";
+        loadAdminData(); return;
+    }
+    const snap = await db.collection("emp").where("id", "==", u).where("contact", "==", p).get();
+    if(!snap.empty) {
+        currentUser = snap.docs[0].data();
+        document.getElementById('loginPage').style.display="none"; document.getElementById('empPanel').style.display="block";
+        document.getElementById('welcomeMsg').innerText = "Welcome, " + currentUser.name;
+        loadEmpAttendance();
+    } else alert("Invalid Credentials");
 }
 
-if(r==="employee"){
-let snap=await db.collection("employees").get();
-snap.forEach(d=>{
-let e=d.data();
-if(e.contact===u && e.password===p){
-currentUser=e;
-loginPage.style.display="none";
-empPanel.style.display="block";
-welcome.innerText="Welcome "+e.name;
-}
-});
-}
+async function mark(type) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        if(getDistance(pos.coords.latitude, pos.coords.longitude, SHOP_LAT, SHOP_LNG) > RADIUS) return alert("❌ Not in Range (50m)");
+        const date = getTodayKey(), time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const ref = db.collection("attendance").doc(currentUser.id + "_" + date);
+        const doc = await ref.get();
+        let data = doc.exists ? doc.data() : { id: currentUser.id, name: currentUser.name, date, month: new Date().getMonth()+1, year: new Date().getFullYear() };
+        data[type] = time; data.shift = document.getElementById('shiftSelect').value;
+        await ref.set(data, { merge: true }); updateEmpUI(data);
+    }, () => alert("Enable GPS"));
 }
 
-/* MENU */
-function toggleMenu(){
-menu.style.display=menu.style.display==="block"?"none":"block";
+// REQ 1: [L]+[YYMMDD]+[SERIAL]
+async function generateID(name) {
+    const letter = name.charAt(0).toUpperCase(), d = new Date();
+    const dateStr = String(d.getFullYear()).substring(2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+    const snap = await db.collection("emp").get();
+    return letter + dateStr + (snap.size + 1).toString().padStart(3, '0');
 }
 
-/* NOTIF */
-function toggleNotif(){
-notifBox.style.display=notifBox.style.display==="block"?"none":"block";
-loadNotif();
+async function saveEmployee() {
+    const name = document.getElementById('e_name').value, contact = document.getElementById('e_contact').value;
+    if(!name || !contact) return alert("Required fields missing");
+    const id = editingId || await generateID(name);
+    await db.collection("emp").doc(id).set({ id, name, contact, father: document.getElementById('e_father').value, address: document.getElementById('e_address').value, post: document.getElementById('e_post').value, duty: document.getElementById('e_duty').value, salary: document.getElementById('e_salary').value, password: contact }, { merge: true });
+    closeModal(); loadAdminData();
 }
 
-async function loadNotif(){
-let n="";
-let snap=await db.collection("notifications").get();
-snap.forEach(d=>{
-let x=d.data();
-n+=`<div>${x.type} : ${x.text}</div>`;
-});
-notifBox.innerHTML=n;
+async function loadAdminData() {
+    const m = parseInt(document.getElementById('attMonth').value), y = parseInt(document.getElementById('attYear').value);
+    const empSnap = await db.collection("emp").get(), attSnap = await db.collection("attendance").where("month", "==", m).where("year", "==", y).get();
+    const attMap = {}; attSnap.forEach(d => { if(!attMap[d.data().id]) attMap[d.data().id] = []; attMap[d.data().id].push(d.data()); });
+    let h="", a="", w="", s="";
+    empSnap.forEach(doc => {
+        const e = doc.data(), records = attMap[e.id] || [];
+        h += `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.post}</td><td>${e.contact}</td><td>${records.some(r=>r.date===getTodayKey())?'✅':'❌'}</td>
+            <td style="position:relative"><button onclick="toggleMenu('${e.id}')">⋮</button><div id="m-${e.id}" class="dropdown"><div onclick="viewDoc('${e.id}')">Details</div><div onclick="editEmp('${e.id}')">Edit</div><div onclick="deleteEmp('${e.id}')">Delete</div></div></td></tr>`;
+        let p = records.filter(r => r.in).length, hrRate = (parseFloat(e.salary||0)) / (parseFloat(e.duty||8)*26), totHr = p * (e.duty||8);
+        a += `<tr><td>${e.id}</td><td>${e.name}</td><td>${p}</td><td>${26-p}</td></tr>`;
+        w += `<tr><td>${e.id}</td><td>${e.name}</td><td>${totHr}</td><td>0</td><td>0</td></tr>`;
+        s += `<tr><td>${e.id}</td><td>${e.name}</td><td>₹${(totHr*hrRate).toFixed(2)}</td><td><select><option>Pending</option><option>Paid</option></select></td></tr>`;
+    });
+    document.getElementById('homeData').innerHTML=h; document.getElementById('attData').innerHTML=a; document.getElementById('workData').innerHTML=w; document.getElementById('salData').innerHTML=s;
 }
 
-/* SHIFT */
-function getShift(s){
-if(s=="1")return{start:480,end:690};
-if(s=="2")return{start:690,end:900};
-if(s=="3")return{start:900,end:1110};
-if(s=="4")return{start:1110,end:1320};
+// NOTIFICATION FIX: Mark as Read
+async function markAllRead() {
+    const snap = await db.collection("notifications").where("read", "==", false).get();
+    const batch = db.batch();
+    snap.forEach(doc => batch.update(doc.ref, { read: true }));
+    await batch.commit();
 }
 
-function now(){let d=new Date();return d.getHours()*60+d.getMinutes();}
-
-/* CHECK */
-function checkIn(){checkInTime=now();alert("In");}
-async function checkOut(){
-let t=getShift(shift.value);
-let out=now();
-
-let work=(out-checkInTime)/60;
-let late=Math.max(0,checkInTime-t.start);
-let ot=Math.max(0,out-t.end);
-
-await db.collection("attendance").add({
-empId:currentUser.id,name:currentUser.name,work,late,ot
-});
-alert("Saved");
+function showNotifs() { 
+    document.getElementById('notifModal').style.display="flex"; 
+    markAllRead(); // Clears the red dot when opened
 }
 
-/* ADD */
-async function addEmp(){
-let n=prompt("Name");
-let c=prompt("Contact");
-let p=prompt("Post");
-let id=n[0]+Date.now();
-
-await db.collection("employees").doc(id).set({
-id,name:n,contact:c,post:p,password:c
-});
-load();
+function listenNotifs() {
+    db.collection("notifications").where("read","==",false).onSnapshot(s => {
+        document.getElementById('notifDot').style.display = s.empty ? "none" : "block";
+        let h = ""; s.forEach(d => { let n=d.data(); h += `<div style="padding:10px; border-bottom:1px solid #eee"><b>${n.name} (${n.type})</b><br>${n.msg}</div>`; });
+        document.getElementById('notifList').innerHTML = h || "No new notifications";
+    });
 }
 
-/* LOAD */
-async function load(){
-
-let h="",att={},w="",sal={};
-
-let emp=await db.collection("employees").get();
-emp.forEach(d=>{
-let e=d.data();
-h+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.post}</td><td>${e.contact}</td></tr>`;
-att[e.id]={name:e.name,days:0};
-});
-
-let at=await db.collection("attendance").get();
-at.forEach(d=>{
-let a=d.data();
-att[a.empId].days++;
-
-w+=`<tr><td>${a.empId}</td><td>${a.name}</td><td>${a.work.toFixed(2)}</td><td>${a.late}</td><td>${a.ot}</td></tr>`;
-sal[a.empId]=(sal[a.empId]||0)+a.work*100;
-});
-
-let ahtml="",shtml="";
-for(let i in att){
-ahtml+=`<tr><td>${i}</td><td>${att[i].name}</td><td>${att[i].days}</td><td>${30-att[i].days}</td></tr>`;
-}
-for(let i in sal){
-shtml+=`<tr><td>${i}</td><td>${att[i].name}</td><td>${sal[i]}</td></tr>`;
-}
-
-homeTable.innerHTML=h;
-attTable.innerHTML=ahtml;
-workTable.innerHTML=w;
-salTable.innerHTML=shtml;
-}
-
-/* LEAVE */
-function sendLeave(){
-db.collection("notifications").add({type:"leave",text:leave.value});
-alert("Sent");
-}
-
-/* ISSUE */
-function sendIssue(){
-db.collection("notifications").add({type:"issue",text:issue.value});
-alert("Sent");
-}
-
-/* TAB */
-function tab(t){
-["home","attendance","work","salary"].forEach(x=>document.getElementById(x).style.display="none");
-document.getElementById(t).style.display="block";
-}
-
-function logout(){location.reload();}
-
+function updateEmpUI(data) { ['in','out','breakin','breakout','lunchin','lunchout'].forEach(f => { if(data[f]) { const b = document.getElementById('btn-'+f); if(b) b.disabled = true; const l = document.getElementById('lbl-'+f); if(l) l.innerText = data[f]; } }); }
+async function loadEmpAttendance() { const snap = await db.collection("attendance").doc(currentUser.id + "_" + getTodayKey()).get(); if(snap.exists) updateEmpUI(snap.data()); }
+function getDistance(la1, lo1, la2, lo2) { let R = 6371, dLa = (la2-la1)*Math.PI/180, dLo = (lo2-lo1)*Math.PI/180, a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2; return 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*R*1000; }
+function getTodayKey() { let d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function toggleMenu(id) { let el = document.getElementById('m-'+id); let show = el.style.display==="block"; document.querySelectorAll('.dropdown').forEach(d=>d.style.display="none"); if(!show) el.style.display="block"; }
+function toggleMainDropdown() { let m = document.getElementById('mainMenu'); m.style.display = m.style.display==="block"?"none":"block"; }
+function showTab(t) { ['home','att','work','sal'].forEach(i=>{document.getElementById(i).style.display="none";document.getElementById('tab-'+i).classList.remove('active-tab');}); document.getElementById(t).style.display="block"; document.getElementById('tab-'+t).classList.add('active-tab'); }
+function openAddModal() { editingId=null; document.getElementById('modalTitle').innerText="Add New Staff"; document.getElementById('empModal').style.display="flex"; }
+function closeModal() { document.getElementById('empModal').style.display="none"; }
+function logout() { location.reload(); }
+async function deleteEmp(id) { if(confirm("Delete?")) { await db.collection("emp").doc(id).delete(); loadAdminData(); } }
+async function editEmp(id) { editingId=id; const doc = await db.collection("emp").doc(id).get(); const e = doc.data(); document.getElementById('e_name').value=e.name; document.getElementById('e_contact').value=e.contact; document.getElementById('empModal').style.display="flex"; }
+function viewDoc(id) { window.open(`https://console.firebase.google.com/project/smart-fresh-eb255/firestore/data/~2Femp~2F${id}`); }
+async function submitRequest() { await db.collection("notifications").add({ name: currentUser.name, type: document.getElementById('reqType').value, msg: document.getElementById('reqMsg').value, read: false, time: Date.now() }); alert("Submitted"); document.getElementById('reqMsg').value=""; }
 </script>
-
 </body>
 </html>
