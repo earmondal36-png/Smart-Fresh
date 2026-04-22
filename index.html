@@ -193,7 +193,7 @@ let currentUser = {};
 let editingId = null;
 const SHOP_LAT = 22.8527357;
 const SHOP_LNG = 88.8115527;
-const RADIUS = 50;
+const RADIUS = 20;
 
 window.onload = () => {
     ['att', 'work', 'sal'].forEach(f => {
@@ -207,7 +207,7 @@ window.onload = () => {
 
 async function login() {
     const r = document.getElementById('role').value, u = document.getElementById('username').value, p = document.getElementById('password').value;
-    if(r === "admin" && u === "admin" && p === "1234") {
+    if(r === "Admin" && u === "admin" && p === "Smart@123") {
         document.getElementById('loginPage').style.display="none"; document.getElementById('adminPanel').style.display="block";
         loadAdminData(); return;
     }
