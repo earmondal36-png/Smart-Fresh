@@ -193,7 +193,7 @@ let currentUser = {};
 let editingId = null;
 const SHOP_LAT = 22.8527357;
 const SHOP_LNG = 88.8115527;
-const RADIUS = 50;
+const RADIUS = 20;
 
 window.onload = () => {
     ['att', 'work', 'sal'].forEach(f => {
@@ -222,7 +222,7 @@ async function login() {
 
 async function mark(type) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
-        if(getDistance(pos.coords.latitude, pos.coords.longitude, SHOP_LAT, SHOP_LNG) > RADIUS) return alert("❌ Not in Range (50m)");
+        if(getDistance(pos.coords.latitude, pos.coords.longitude, SHOP_LAT, SHOP_LNG) > RADIUS) return alert("❌ Not in Range (20m)");
         const date = getTodayKey(), time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const ref = db.collection("attendance").doc(currentUser.id + "_" + date);
         const doc = await ref.get();
